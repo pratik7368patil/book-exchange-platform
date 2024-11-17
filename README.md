@@ -15,7 +15,7 @@ Platform to share your knowledge. Trade your books with other users with ease. M
   - Send and receive book exchange requests
   - Track exchange status
   - Manage ongoing exchanges
-- **Book Discovery**:
+- **Book Search**:
   - Search books by title, author, or genre
   - Bookmark interesting books
 - **Order Management**:
@@ -61,8 +61,6 @@ Platform to share your knowledge. Trade your books with other users with ease. M
   - Image storage
   - Scalable architecture
   - Reliable access
-
-## Getting Started
 
 ### Prerequisites
 
