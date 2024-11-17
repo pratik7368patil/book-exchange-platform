@@ -1,5 +1,5 @@
 <template>
-  <div class="min-h-screen bg-gray-50 py-4 sm:py-8">
+  <div class="min-h-screen py-4 sm:py-8">
     <div class="max-w-3xl mx-auto px-4">
       <!-- Back Button -->
       <div class="mb-4">

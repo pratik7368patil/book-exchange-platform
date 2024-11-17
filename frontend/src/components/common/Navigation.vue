@@ -251,9 +251,14 @@ const handleProfileMenuSelect = (key: string) => {
     userStore.clearUser();
     router.push({ name: "login" });
   } else if (
-    ["my-books", "register-book", "bookmarks", "requests", "orders"].includes(
-      key
-    )
+    [
+      "profile",
+      "my-books",
+      "register-book",
+      "bookmarks",
+      "requests",
+      "orders",
+    ].includes(key)
   ) {
     router.push({ name: key });
   }

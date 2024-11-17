@@ -1,5 +1,19 @@
 <template>
-  <div class="max-w-7xl mx-auto px-2 sm:px-5">
+  <div class="max-w-7xl mx-auto px-2 pt-4 sm:px-5">
+    <div class="mb-4 space-y-2">
+      <n-button
+        text
+        type="primary"
+        @click="router.push('/')"
+        class="flex items-center gap-1 -ml-2 text-gray-600 hover:text-primary"
+      >
+        <template #icon>
+          <n-icon :component="ArrowLeftIcon" class="h-4 w-4" />
+        </template>
+        Back to Books
+      </n-button>
+    </div>
+
     <n-card title="Orders History" class="bg-white">
       <template #header-extra>
         <n-space align="center">
@@ -147,6 +161,7 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from "vue";
+import { useRouter } from "vue-router";
 import {
   NCard,
   NButton,
@@ -169,6 +184,7 @@ import {
   ClockIcon,
   BookOpenIcon,
   ArrowsRightLeftIcon,
+  ArrowLeftIcon,
 } from "@heroicons/vue/24/outline";
 import services from "@/services";
 import type { Order } from "@/services/OrdersService";
@@ -177,6 +193,7 @@ import ExchangeParty from "./common/ExchangeParty.vue";
 
 const userStore = useUserStore();
 const message = useMessage();
+const router = useRouter();
 const loading = ref(false);
 const orders = ref<Order[]>([]);
 

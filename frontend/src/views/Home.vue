@@ -2,7 +2,9 @@
   <div>
     <NMessageProvider>
       <Navigation />
-      <router-view></router-view>
+      <div class="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8">
+        <router-view></router-view>
+      </div>
     </NMessageProvider>
   </div>
 </template>
