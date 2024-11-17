@@ -1,9 +1,15 @@
 <template>
-  <div class="max-w-7xl mx-auto px-5">
+  <div class="max-w-7xl mx-auto px-2 sm:px-5">
     <n-card title="Orders History" class="bg-white">
       <template #header-extra>
         <n-space align="center">
-          <n-button @click="loadOrders" type="primary" secondary>
+          <n-button
+            @click="loadOrders"
+            type="primary"
+            secondary
+            size="small"
+            class="sm:text-base"
+          >
             <template #icon>
               <n-icon><ArrowPathIcon /></n-icon>
             </template>
@@ -18,112 +24,118 @@
           description="No orders found"
         />
 
-        <n-list v-else>
+        <n-list v-else class="space-y-4">
           <n-list-item v-for="order in orders" :key="order.id">
             <n-card
               :title="'Order #' + order.id.substring(0, 8)"
               embedded
-              class="transition-all duration-300 hover:translate-y-[-2px] hover:shadow-lg"
+              class="transition-all duration-300"
             >
               <template #header>
-                <div class="flex items-center justify-between px-5 py-3 border-b border-gray-200">
-                  <span class="font-semibold text-gray-700">
+                <div
+                  class="flex flex-col sm:flex-row sm:items-center justify-between px-3 sm:px-5 py-3 border-b border-gray-200 space-y-2 sm:space-y-0"
+                >
+                  <span
+                    class="font-semibold text-gray-700 text-sm sm:text-base"
+                  >
                     Order #{{ order.id.substring(0, 8) }}
                   </span>
                   <n-tag
                     :type="getStatusType(order.status)"
                     round
-                    class="font-medium"
+                    class="font-medium self-start sm:self-auto"
                   >
                     {{ order.status.toUpperCase() }}
                   </n-tag>
                 </div>
               </template>
 
-              <div class="p-4">
-                <n-grid :cols="2" :x-gap="16">
-                  <n-gi>
-                    <div class="rounded-lg bg-white p-4">
-                      <h3 class="flex items-center gap-2 text-base font-semibold mb-4 text-gray-700">
-                        <n-icon class="text-primary"><QrCodeIcon /></n-icon>
-                        Shipping Details
-                      </h3>
-                      <n-descriptions :column="1">
-                        <n-descriptions-item label="Shipping Method">
-                          <n-space align="center" :size="8">
-                            <n-tag size="small" round type="info">
-                              {{ order.shippingMethod }}
-                            </n-tag>
-                          </n-space>
-                        </n-descriptions-item>
-                        <n-descriptions-item
-                          v-if="order.trackingNumber"
-                          label="Tracking Number"
-                        >
-                          <n-space align="center" :size="8">
-                            <n-icon size="18">
-                              <QrCodeIcon />
-                            </n-icon>
-                            <n-text code>{{ order.trackingNumber }}</n-text>
-                          </n-space>
-                        </n-descriptions-item>
-                        <n-descriptions-item
-                          v-if="order.estimatedDeliveryDate"
-                          label="Estimated Delivery"
-                        >
-                          <n-space align="center" :size="8">
-                            <n-icon size="18">
-                              <CalendarIcon />
-                            </n-icon>
-                            <n-text type="info">
-                              {{ formatDate(order.estimatedDeliveryDate) }}
-                            </n-text>
-                          </n-space>
-                        </n-descriptions-item>
-                        <n-descriptions-item label="Created">
-                          <n-space align="center" :size="8">
-                            <n-icon size="18">
-                              <ClockIcon />
-                            </n-icon>
-                            <n-text type="success">
-                              {{ formatDate(order.createdAt) }}
-                            </n-text>
-                          </n-space>
-                        </n-descriptions-item>
-                      </n-descriptions>
-                    </div>
-                  </n-gi>
-
-                  <n-gi>
-                    <div class="rounded-lg bg-white p-4">
-                      <h3 class="flex items-center gap-2 text-base font-semibold mb-4 text-gray-700">
-                        <n-icon class="text-primary"><BookOpenIcon /></n-icon>
-                        Exchange Details
-                      </h3>
-                      <n-space vertical :size="12">
-                        <ExchangeParty
-                          label="From"
-                          :user="order.request.sender"
-                          :book="order.request.senderBook"
-                        />
-
-                        <div class="flex items-center gap-3 py-2">
-                          <div class="flex-1 h-px bg-gray-200"></div>
-                          <n-icon class="text-gray-400">
-                            <ArrowsRightLeftIcon />
+              <div class="p-2 sm:p-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div class="rounded-lg bg-white p-3 sm:p-4 h-full">
+                    <h3
+                      class="flex items-center gap-2 text-sm sm:text-base font-semibold mb-3 sm:mb-4 text-gray-700"
+                    >
+                      <n-icon class="text-primary"><QrCodeIcon /></n-icon>
+                      Shipping Details
+                    </h3>
+                    <n-descriptions :column="1" class="text-sm sm:text-base">
+                      <n-descriptions-item label="Shipping Method">
+                        <n-space align="center" :size="8">
+                          <n-tag size="small" round type="info">
+                            {{ order.shippingMethod }}
+                          </n-tag>
+                        </n-space>
+                      </n-descriptions-item>
+                      <n-descriptions-item
+                        v-if="order.trackingNumber"
+                        label="Tracking Number"
+                      >
+                        <n-space align="center" :size="8">
+                          <n-icon size="18">
+                            <QrCodeIcon />
                           </n-icon>
-                          <div class="flex-1 h-px bg-gray-200"></div>
-                        </div>
+                          <n-text code class="text-xs sm:text-sm break-all">{{
+                            order.trackingNumber
+                          }}</n-text>
+                        </n-space>
+                      </n-descriptions-item>
+                      <n-descriptions-item
+                        v-if="order.estimatedDeliveryDate"
+                        label="Estimated Delivery"
+                      >
+                        <n-space align="center" :size="8">
+                          <n-icon size="18">
+                            <CalendarIcon />
+                          </n-icon>
+                          <n-text type="info">
+                            {{ formatDate(order.estimatedDeliveryDate) }}
+                          </n-text>
+                        </n-space>
+                      </n-descriptions-item>
+                      <n-descriptions-item label="Created">
+                        <n-space align="center" :size="8">
+                          <n-icon size="18">
+                            <ClockIcon />
+                          </n-icon>
+                          <n-text type="success">
+                            {{ formatDate(order.createdAt) }}
+                          </n-text>
+                        </n-space>
+                      </n-descriptions-item>
+                    </n-descriptions>
+                  </div>
 
-                        <ExchangeParty
-                          label="To"
-                          :user="order.request.receiver"
-                          :book="order.request.receiverBook"
-                        />
-                      </n-space>
-                    </div>
-                  </n-gi>
-                </n-grid>
+                  <div class="rounded-lg bg-white p-3 sm:p-4 h-full">
+                    <h3
+                      class="flex items-center gap-2 text-sm sm:text-base font-semibold mb-3 sm:mb-4 text-gray-700"
+                    >
+                      <n-icon class="text-primary"><BookOpenIcon /></n-icon>
+                      Exchange Details
+                    </h3>
+                    <n-space vertical :size="12">
+                      <ExchangeParty
+                        label="From"
+                        :user="order.request.sender"
+                        :book="order.request.senderBook"
+                      />
+
+                      <div class="flex items-center gap-3 py-2">
+                        <div class="flex-1 h-px bg-gray-200"></div>
+                        <n-icon class="text-gray-400">
+                          <ArrowsRightLeftIcon />
+                        </n-icon>
+                        <div class="flex-1 h-px bg-gray-200"></div>
+                      </div>
+
+                      <ExchangeParty
+                        label="To"
+                        :user="order.request.receiver"
+                        :book="order.request.receiverBook"
+                      />
+                    </n-space>
+                  </div>
+                </div>
               </div>
             </n-card>
           </n-list-item>
@@ -144,8 +156,6 @@ import {
   NList,
   NListItem,
   NTag,
-  NGrid,
-  NGi,
   NDescriptions,
   NDescriptionsItem,
   NIcon,
