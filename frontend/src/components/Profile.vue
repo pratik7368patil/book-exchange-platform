@@ -281,6 +281,7 @@ const handleAvatarUpload = async ({ file }: { file: UploadFileInfo }) => {
     );
     if (response?.data) {
       userStore.setUser(response.data);
+      formData.value.avatar = response.data.avatar;
       message.success("Avatar uploaded successfully!");
     }
   } catch (error: any) {

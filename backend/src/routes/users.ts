@@ -111,7 +111,7 @@ router.post(
       user.avatar = avatarUrl;
       await user.save();
 
-      res.send({ user, error: false });
+      res.send(user);
     } catch (error) {
       console.error("Error uploading avatar:", error);
       res.status(500).send({ message: "Error uploading avatar", error: true });
