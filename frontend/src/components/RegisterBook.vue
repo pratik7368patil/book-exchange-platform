@@ -1,177 +1,79 @@
 <template>
-  <div
-    class="min-h-full flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8"
-  >
-    <div class="max-w-md w-full">
-      <div class="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
-        <h2
-          class="mt-4 sm:mt-6 text-center text-2xl sm:text-3xl font-extrabold text-gray-900"
-        >
-          Register a New Book
-        </h2>
-        <p class="mt-2 text-center text-sm text-gray-600">
-          Add your book to the exchange platform
-        </p>
+  <div class="max-w-2xl mx-auto p-4">
+    <div class="mb-8 space-y-2">
+      <n-button
+        text
+        type="primary"
+        @click="router.push('/')"
+        class="flex items-center gap-1 -ml-2 text-gray-600 hover:text-primary"
+      >
+        <template #icon>
+          <n-icon :component="ArrowLeftIcon" class="h-4 w-4" />
+        </template>
+        Back to Books
+      </n-button>
+      <h1 class="text-2xl font-bold text-gray-900">Register a New Book</h1>
+      <p class="text-sm text-gray-600">
+        Fill in the details of the book you'd like to share or exchange.
+      </p>
+    </div>
 
-        <div class="mt-6 sm:mt-8">
-          <form
-            class="space-y-5 sm:space-y-6"
-            @submit.prevent="handleRegisterBook"
-          >
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Book Title
-              </label>
-              <div class="mt-1">
-                <NInput
-                  v-model:value="bookData.title"
-                  type="text"
-                  placeholder="Enter book title"
-                  required
-                  :theme-overrides="inputThemeOverrides"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Author
-              </label>
-              <div class="mt-1">
-                <NInput
-                  v-model:value="bookData.author"
-                  type="text"
-                  placeholder="Enter author name"
-                  required
-                  :theme-overrides="inputThemeOverrides"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Genre
-              </label>
-              <div class="mt-1">
-                <NSelect
-                  v-model:value="bookData.genre"
-                  :options="genreOptions"
-                  placeholder="Select genre"
-                  required
-                  :theme-overrides="selectThemeOverrides"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Condition
-              </label>
-              <div class="mt-1">
-                <NSelect
-                  v-model:value="bookData.condition"
-                  :options="conditionOptions"
-                  placeholder="Select book condition"
-                  required
-                  :theme-overrides="selectThemeOverrides"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label class="block text-sm font-medium text-gray-700">
-                Availability Status
-              </label>
-              <div class="mt-1">
-                <NSelect
-                  v-model:value="bookData.status"
-                  :options="statusOptions"
-                  placeholder="Select availability status"
-                  required
-                  :theme-overrides="selectThemeOverrides"
-                />
-              </div>
-            </div>
-
-            <div class="mt-6">
-              <NButton
-                type="primary"
-                block
-                attr-type="submit"
-                :loading="isLoading"
-                :disabled="!isFormValid"
-                class="flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 disabled:cursor-not-allowed"
-                :theme-overrides="{
-                  textColor: 'white',
-                  color: '#4F46E5',
-                  colorHover: '#4338CA',
-                  colorPressed: '#3730A3',
-                  colorFocus: '#4F46E5',
-                  colorDisabled: '#818CF8',
-                  textColorDisabled: 'white',
-                  borderFocus: '#4F46E5',
-                  rippleColor: 'rgba(79, 70, 229, 0.2)',
-                }"
-              >
-                {{ isLoading ? "Registering..." : "Register Book" }}
-              </NButton>
-            </div>
-          </form>
-        </div>
-      </div>
+    <div class="bg-white rounded-lg shadow p-6">
+      <BookForm
+        :is-loading="isLoading"
+        submit-button-text="Register Book"
+        @submit="handleSubmit"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
-import { NInput, NSelect, NButton } from "naive-ui";
-import {
-  genreOptions,
-  conditionOptions,
-  statusOptions,
-  inputThemeOverrides,
-  selectThemeOverrides,
-} from "../helper/constants";
+import { ref } from "vue";
+import { useRouter } from "vue-router";
+import { useMessage } from "naive-ui";
+import { NButton, NIcon } from "naive-ui";
+import { ArrowLeftIcon } from "@heroicons/vue/24/outline";
+import { BooksServiceInstance } from "@/services";
+import { useUserStore } from "@/stores/user";
+import BookForm from "./common/BookForm.vue";
 
-interface BookData {
-  title: string;
-  author: string;
-  genre: string;
-  condition: string;
-  status: string;
-}
-
+const router = useRouter();
+const message = useMessage();
+const userStore = useUserStore();
 const isLoading = ref(false);
-const bookData = ref<BookData>({
-  title: "",
-  author: "",
-  genre: "",
-  condition: "",
-  status: "",
-});
 
-const isFormValid = computed(() => {
-  return (
-    bookData.value.title &&
-    bookData.value.author &&
-    bookData.value.genre &&
-    bookData.value.condition &&
-    bookData.value.status
-  );
-});
+const handleSubmit = async (data: any) => {
+  if (!userStore.user) {
+    message.error("You must be logged in to register a book");
+    router.push("/login");
+    return;
+  }
 
-async function handleRegisterBook() {
-  if (!isFormValid.value) return;
-  
-  isLoading.value = true;
   try {
-    // Your API call logic here
-    console.log("Registering book:", bookData.value);
+    isLoading.value = true;
+    await BooksServiceInstance?.registerBook(data);
+    message.success("Book registered successfully");
+    router.push("/");
   } catch (error) {
     console.error("Error registering book:", error);
+    message.error("Failed to register book");
   } finally {
     isLoading.value = false;
   }
-}
+};
 </script>
+
+<style scoped>
+.upload-trigger {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+
+.upload-trigger :deep(.n-upload-trigger) {
+  display: flex;
+  justify-content: center;
+  width: 100%;
+}
+</style>

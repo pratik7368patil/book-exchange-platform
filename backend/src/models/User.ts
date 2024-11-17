@@ -38,6 +38,10 @@ const userSchema = new Schema<IUser>(
       minlength: [6, "Password must be at least 6 characters long"],
       select: false, // Don't include password in queries by default
     },
+    avatar: {
+      type: String,
+      default: null,
+    },
     role: {
       type: String,
       enum: ["user", "admin"],
@@ -76,5 +80,19 @@ userSchema.methods.comparePassword = async function (
     return false;
   }
 };
+
+userSchema.set("toJSON", {
+  virtuals: true,
+  transform: (_, ret) => {
+    ret.id = ret._id.toHexString();
+    delete ret._id;
+    delete ret.__v;
+    return ret;
+  },
+});
+
+userSchema.virtual("id").get(function () {
+  return this._id;
+});
 
 export default mongoose.model<IUser>("User", userSchema);

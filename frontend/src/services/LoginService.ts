@@ -16,6 +16,15 @@ export interface LoginResponse {
   };
 }
 
+export interface VerifyResponse {
+  user: {
+    id: string;
+    email: string;
+    name: string;
+    avatar?: string;
+  };
+}
+
 export default class LoginService extends BaseService {
   basePath: string;
   constructor() {
@@ -40,5 +49,10 @@ export default class LoginService extends BaseService {
   async logout(): Promise<AxiosResponse<BaseResponse<void>>> {
     if (!axiosInstance) throw new Error("Axios instance not initialized");
     return axiosInstance.post(this.basePath + "/logout");
+  }
+
+  async verifyToken(): Promise<AxiosResponse<BaseResponse<VerifyResponse>>> {
+    if (!axiosInstance) throw new Error("Axios instance not initialized");
+    return axiosInstance.get(this.basePath + "/verify");
   }
 }

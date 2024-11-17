@@ -1,6 +1,21 @@
 import express, { Request, Response } from "express";
 import { Book } from "../models/Book";
 import mongoose from "mongoose";
+import multer from "multer";
+import { uploadToS3 } from "../helpers/cloud";
+
+const upload = multer({
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5MB limit
+  },
+  fileFilter: (_, file, cb) => {
+    if (file.mimetype.startsWith("image/")) {
+      cb(null, true);
+    } else {
+      cb(new Error("Only image files are allowed"));
+    }
+  },
+});
 
 const router = express.Router();
 
@@ -21,33 +36,70 @@ router.get("/search", async (req: Request, res: Response) => {
   }
 });
 
-// Get all books
-router.get("/", async (_req: Request, res: Response) => {
+// Get all books (paginated)
+router.get("/", async (req: Request, res: Response) => {
   try {
-    const books = await Book.find();
-    res.json(books);
+    const page = parseInt(req.query.page as string) || 1;
+    const limit = parseInt(req.query.limit as string) || 10;
+    const skip = (page - 1) * limit;
+
+    const [books, total] = await Promise.all([
+      Book.find().skip(skip).limit(limit).sort({ createdAt: -1 }),
+      Book.countDocuments(),
+    ]);
+
+    res.json({
+      data: books,
+      pagination: {
+        currentPage: page,
+        totalPages: Math.ceil(total / limit),
+        totalItems: total,
+        itemsPerPage: limit,
+      },
+    });
   } catch (error) {
     res.status(500).json({ message: "Error fetching books", error });
   }
 });
 
-// Get all books by userId
+// Get books by user ID
 router.get(
   "/user/:userId",
   async (req: Request, res: Response): Promise<any> => {
     try {
       const { userId } = req.params;
-      if (!mongoose.Types.ObjectId.isValid(userId)) {
-        return res.status(400).json({ message: "Invalid user ID" });
-      }
-
-      const books = await Book.find({ owner: userId });
+      const books = await Book.find({ owner: userId }).sort({ createdAt: -1 });
       res.json(books);
     } catch (error) {
+      console.error("Error fetching user books:", error);
       res.status(500).json({ message: "Error fetching user books", error });
     }
   }
 );
+
+// Get book by ID
+router.get("/:bookId", async (req: Request, res: Response): Promise<any> => {
+  try {
+    const bookId = req.params.bookId;
+    const book = await Book.findById(bookId).populate("owner", "name email");
+
+    if (!book) {
+      return res.status(404).json({
+        success: false,
+        message: "Book not found",
+      });
+    }
+
+    res.status(200).json(book);
+  } catch (error) {
+    console.error("Error fetching book:", error);
+    res.status(500).json({
+      success: false,
+      message: "Error fetching book details",
+      error: error instanceof Error ? error.message : "Unknown error",
+    });
+  }
+});
 
 // Update book details
 router.put("/:id", async (req: Request, res: Response): Promise<any> => {
@@ -145,5 +197,40 @@ router.post("/register", async (req: Request, res: Response): Promise<any> => {
     }
   }
 });
+
+// Upload book image
+router.post(
+  "/upload",
+  upload.single("image"),
+  async (req: Request, res: Response): Promise<any> => {
+    try {
+      if (!req.file) {
+        return res.status(400).json({ message: "No image file provided" });
+      }
+
+      // Get user ID from auth middleware
+      const userId = req.user?.userId;
+      if (!userId) {
+        return res.status(401).json({ message: "Unauthorized" });
+      }
+
+      // Generate a unique filename
+      const timestamp = Date.now();
+      const extension = req.file.originalname.split(".").pop();
+      const filename = `books/${userId}/${timestamp}.${extension}`;
+
+      const imageUrl = await uploadToS3({
+        file: req.file.buffer,
+        fileName: filename,
+        mimeType: req.file.mimetype,
+        userId,
+      });
+      res.json({ url: imageUrl });
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      res.status(500).json({ message: "Failed to upload image" });
+    }
+  }
+);
 
 export default router;

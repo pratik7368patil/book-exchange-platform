@@ -1,7 +1,7 @@
 import express, { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 const router = express.Router();
-import { handleLogin, handleRegistration } from "./handlers";
+import { handleLogin, handleRegistration, handleTokenAuth } from "./handlers";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key";
 
@@ -25,6 +25,7 @@ export const authenticateToken = (req: Request, res: Response, next: NextFunctio
 
 router.post("/login", handleLogin);
 router.post("/register", handleRegistration);
+router.get("/verify", authenticateToken, handleTokenAuth);
 
 export default router;
 

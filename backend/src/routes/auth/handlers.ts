@@ -5,29 +5,35 @@ import User from "../../models/User";
 
 const JWT_SECRET = process.env.JWT_SECRET || "your-secret-key"; // In production, always use environment variable
 
-export const handleLogin = async (req: Request, res: Response): Promise<any> => {
+export const handleLogin = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
   try {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).send({ message: "Email and password are required", error: true });
+      return res
+        .status(400)
+        .send({ message: "Email and password are required", error: true });
     }
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).send({ message: "Invalid credentials", error: true });
+      return res
+        .status(401)
+        .send({ message: "Invalid credentials", error: true });
     }
 
-    const isValidPassword = await bcrypt.compare(password, user.password);
-    if (!isValidPassword) {
-      return res.status(401).send({ message: "Invalid credentials", error: true });
+    if (!user.comparePassword(password)) {
+      return res
+        .status(401)
+        .send({ message: "Invalid credentials", error: true });
     }
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "30d" }
-    );
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
     res.status(200).send({
       token,
@@ -35,8 +41,8 @@ export const handleLogin = async (req: Request, res: Response): Promise<any> => 
         id: user.id,
         email: user.email,
         name: user.name,
-        avatar: user.avatar
-      }
+        avatar: user.avatar,
+      },
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -44,18 +50,25 @@ export const handleLogin = async (req: Request, res: Response): Promise<any> => 
   }
 };
 
-
-export const handleRegistration = async (req: Request, res: Response): Promise<any> => {
+export const handleRegistration = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
   try {
     const { email, password, name, avatar } = req.body;
 
     if (!email || !password || !name) {
-      return res.status(400).send({ message: "Email, password and name are required", error: true });
+      return res.status(400).send({
+        message: "Email, password and name are required",
+        error: true,
+      });
     }
 
     const existingUser = await User.findOne({ email });
     if (existingUser) {
-      return res.status(400).send({ message: "Email already exists", error: true });
+      return res
+        .status(400)
+        .send({ message: "Email already exists", error: true });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -63,14 +76,12 @@ export const handleRegistration = async (req: Request, res: Response): Promise<a
       email,
       password: hashedPassword,
       name,
-      avatar
+      avatar,
     });
 
-    const token = jwt.sign(
-      { userId: user.id, email: user.email },
-      JWT_SECRET,
-      { expiresIn: "30d" }
-    );
+    const token = jwt.sign({ userId: user.id, email: user.email }, JWT_SECRET, {
+      expiresIn: "30d",
+    });
 
     res.status(201).send({
       token,
@@ -78,11 +89,45 @@ export const handleRegistration = async (req: Request, res: Response): Promise<a
         id: user.id,
         email: user.email,
         name: user.name,
-        avatar: user.avatar
-      }
+        avatar: user.avatar,
+      },
     });
   } catch (error) {
     console.error("Registration error:", error);
+    res.status(500).send({ message: "Internal server error", error: true });
+  }
+};
+
+export const handleTokenAuth = async (
+  req: Request,
+  res: Response
+): Promise<any> => {
+  try {
+    // Token is already verified by authenticateToken middleware
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res
+        .status(401)
+        .send({ message: "User not found in token", error: true });
+    }
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(401).send({ message: "User not found", error: true });
+    }
+
+    res.status(200).send({
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        avatar: user.avatar,
+      },
+      message: "Token authenticated successfully",
+    });
+  } catch (error) {
+    console.error("Token authentication error:", error);
     res.status(500).send({ message: "Internal server error", error: true });
   }
 };

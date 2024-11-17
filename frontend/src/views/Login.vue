@@ -83,11 +83,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, onMounted } from "vue";
 import { useRouter } from "vue-router";
 import { useUserStore } from "@/stores/user";
 import services from "@/services";
-import { storeToken } from "@/helper";
+import { storeToken, getToken } from "@/helper";
 import { NText } from "naive-ui";
 
 const router = useRouter();
@@ -95,6 +95,29 @@ const userStore = useUserStore();
 const email = ref("");
 const password = ref("");
 const isLoading = ref(false);
+
+onMounted(async () => {
+  try {
+    const token = getToken();
+    if (token) {
+      isLoading.value = true;
+      const loginService = services.LoginService();
+      if (!loginService) throw new Error("Login service not initialized");
+
+      const response: any = await loginService.verifyToken();
+      if (response?.data?.user) {
+        userStore.setUser(response.data.user);
+        router.push("/");
+      }
+    }
+  } catch (error) {
+    console.error("Token verification failed:", error);
+    // Invalid token, clear it
+    userStore.clearUser();
+  } finally {
+    isLoading.value = false;
+  }
+});
 
 const handleLogin = async () => {
   if (!email.value || !password.value) {
