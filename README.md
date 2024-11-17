@@ -17,7 +17,6 @@ Platform to share your knowledge. Trade your books with other users with ease. M
   - Manage ongoing exchanges
 - **Book Discovery**:
   - Search books by title, author, or genre
-  - Filter books by availability and condition
   - Bookmark interesting books
 - **Order Management**:
   - Track exchange deliveries
